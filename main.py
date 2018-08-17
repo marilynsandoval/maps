@@ -1,19 +1,9 @@
 #!/usr/bin/env python
-#
-# Copyright 2007 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+
+from google.appengine.api import images
+from google.appengine.ext import ndb
+from google.appengine.ext import blobstore
+from models import Note
 import os
 import webapp2
 import jinja2
@@ -52,6 +42,75 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         template = JINJA_ENV.get_template('templates/map.html')
         self.response.write(template.render())
+
+        descr = self.request.get('desc')
+
+        if descr == None:
+            print("There's nothing in here. ")
+            
+        if self.request.get('img'):
+        	photo = Photo.get_by_id(int(self.request.get('img')))
+
+    def post(self):
+        print("Done.")
+
+        note = Note(
+                img = self.request.get('img'), 
+                describe = self.request.get('desc'),
+                )
+
+        note.put()
+        
+        template = jinja_env.get_template('templates/map.html')
+        self.response.out.write(template.render())
+
+
+class InfoHandler(webapp2.RequestHandler):
+    def get(self):
+
+        descr = self.request.get('address')
+
+        if descr == None:
+            print("There's nothing in here. ")
+            
+        if self.request.get('img'):
+        	photo = Photo.get_by_id(int(self.request.get('img')))
+
+    def post(self):
+        print("Done.")
+
+        note = Note(
+                img = self.request.get('img'), 
+                describe = self.request.get('desc'),
+                )
+
+        note.put()
+        
+        template = jinja_env.get_template('./templates/map.html')
+        self.response.out.write(template.render())
+
+		
+class ViewInfo(webapp2.RequestHandler):
+	def _render_template(self, template_name, context = None):
+		if context is None:
+			context = {}
+		
+	def get(self):
+		qry = Note.owner_query()
+		context['notes'] = qry.fetch
+		template_name = jinja_env.get_template('./view.html')
+		return template.render(context)
+		
+
+class Note(ndb.Model):
+    img = ndb.BlobProperty()
+    describe = ndb.StringProperty()
+    
+    @classmethod
+    def owner_query(cls):
+        return cls.query().order(
+            cls.date_created)
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
