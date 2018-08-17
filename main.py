@@ -43,7 +43,7 @@ class MainHandler(webapp2.RequestHandler):
         template = JINJA_ENV.get_template('templates/map.html')
         self.response.write(template.render())
 
-        descr = self.request.get('desc')
+        descr = self.request.get('address')
 
         if descr == None:
             print("There's nothing in here. ")
